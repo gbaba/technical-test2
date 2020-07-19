@@ -1,0 +1,23 @@
+{
+     "name": "anztechnicaltest2",
+     "version": "1.0",
+     "description": "GIT SHA via API endpoint.",
+     "main": "index.js",
+     "directories": {
+          "test": "tests/*.js"
+     },
+     "scripts": {
+          "test": "mocha tests/unittests/*.js --exit",
+          "start": "node index.js"
+     },
+     "author": "Gum Shahd Baba",
+     "license": "ISC",
+     "devDependencies": {
+          "chai": "^4.2.0",
+          "chai-http": "^4.3.0",
+          "mocha": "8.0.1"
+     },
+     "dependencies": {
+          "express": "4.17.1"
+     }
+}
