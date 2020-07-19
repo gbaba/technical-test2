@@ -1,6 +1,6 @@
 {
      "name": "anztechnicaltest2",
-     "version": "1.0",
+     "version": "1.0.0",
      "description": "GIT SHA via API endpoint.",
      "main": "index.js",
      "directories": {

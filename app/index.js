@@ -1,13 +1,15 @@
-const express = require('express');
-const app = express();
-const port = 3300;
+const express   = require('express');
+const app       = express();
+const port      = process.env.PORT || 3300;
+const gitsha    = process.env.SHA;
+const appver    = process.env.VERSION;
 
 app.get('/version', function (req, res) {
 var response = {
     "myapplication": [
         {
-        "version": "1.0",
-        "lastcommitsha": "abc57858585",
+        "version": appver,
+        "lastcommitsha": gitsha,
         "description" : "pre-interview technical test"
         }
     ]
