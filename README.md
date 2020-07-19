@@ -1,2 +1,2 @@
-# technical_test2
+# technical-test2
 ANZ Technical Test 2
