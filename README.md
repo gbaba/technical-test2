@@ -49,7 +49,7 @@ start the app container.
 Test the endpoint with curl:
     ```curl -i http://localhost:3300/version```
 
-Output
+- Output
     ```
     HTTP/1.1 200 OK
     X-Powered-By: Express
@@ -64,7 +64,7 @@ Output
 Test the endpoint from the root of the project
     ```npm test```
 
-Output
+- Output
     ```
     > anztechnicaltest2@1.0.0 test /Users/gumbaba/Documents/anz_test/technical-test2/app
     > mocha tests/unittests/*.js --exit
