@@ -22,6 +22,10 @@ ENV SHA=$sha
 ENV VERSION=$version
 COPY --from=buildhelper /app /app
 
+RUN addgroup -g 1001 nodejs && \
+adduser -D -u 1001 -G nodejs nodejs
+USER nodejs
+
 ENV PORT=3300
 
 EXPOSE ${PORT}
