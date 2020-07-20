@@ -109,6 +109,5 @@ A Simple Kubernetes layer has been added, required namespace, service, and deplo
 - The API does not have any monitoring configured.
 - Currently the API is served over http which is a big risk in terms of production deploy.
 - It does not have any authentication / authorisation support.
-- It does not support deploying to any orchestration engine.
 - Docker image is not being scanned for vulnerabilities.
 - No rules define for who and how you can merge/push to the master branch.
