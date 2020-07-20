@@ -1,0 +1,88 @@
+steps:
+  - label: ":sonarcodecheck: sonar code check"
+    command:
+      - sonar.sh .
+    agents:
+        builder: <builder agent npm with sonar>
+    env:
+      ECR: <path to artifactory>
+      BN: technical-test2$BUILDKITE_BUILD_NUMBER
+
+  - label: ":npmtest: npm test"
+    command:
+      - npm test
+    agents:
+        builder: <builder agent npm>
+    env:
+      ECR: <path to artifactory>
+      BN: technical-test2$BUILDKITE_BUILD_NUMBER
+
+  - label: ":npm build: npm build"
+    command:
+      - npm build
+      - . /buildkite-secrets/aws.anz
+      - docker build -t \$ECR:\$BN -f Dockerfile . --build-arg sha="$(git rev-parse --short HEAD)" --build-arg  version=$BUILDKITE_APP_VERSION
+      - $(aws ecr get-login --no-include-email)
+      - docker tag \$ECR:\$BN \$ECR:latest
+      - docker push \$ECR:\$BN
+      - docker push \$ECR:latest
+    agents:
+        builder: <builder agent npm>
+    env:
+      ECR: <path to artifactory>
+      BN: technical-test2$BUILDKITE_BUILD_NUMBER
+
+  - label: deploy build dev
+    command:
+      - . /buildkite-secrets/aws.anz
+      - .buildkite/k8s.sh
+    agents:
+      builder: <builer agent with npm>
+    env:
+      ECR: <ECR image path>:$BN
+      CLUSTER_NAME: <cluster name>
+      BN: bn$BUILDKITE_BUILD_NUMBER
+      K8S_DEPLOY: technical-test2-deploy
+      K8S_NAMESPACE: technical-test2
+      ENV: dev
+
+  - label: functional tests
+    command:
+      - . /buildkite-secrets/aws.anz
+      - .buildkite/functional_tests.sh
+    agents:
+      builder: <builer agent with npm>
+    env:
+      ECR: <ECR image path>:$BN
+      CLUSTER_NAME: <cluster name>
+      BN: bn$BUILDKITE_BUILD_NUMBER
+      K8S_DEPLOY: technical-test2-deploy
+      K8S_NAMESPACE: technical-test2
+
+  - label: integration tests
+    command:
+      - . /buildkite-secrets/aws.anz
+      - .buildkite/integration_tests.sh
+    agents:
+      builder: <builer agent with npm>
+    env:
+      ECR: <ECR image path>:$BN
+      CLUSTER_NAME: <cluster name>
+      BN: bn$BUILDKITE_BUILD_NUMBER
+      K8S_DEPLOY: technical-test2-deploy
+      K8S_NAMESPACE: technical-test2
+
+  -wait
+  - label: deploy build prod
+    command:
+      - . /buildkite-secrets/aws_prod.anz
+      - .buildkite/k8s.sh
+    agents:
+      builder: <builer agent with npm>
+    env:
+      ECR: <ECR image path>:$BN
+      CLUSTER_NAME: <cluster name>
+      BN: bn$BUILDKITE_BUILD_NUMBER
+      K8S_DEPLOY: technical-test2-deploy
+      K8S_NAMESPACE: technical-test2
+      ENV: prod
