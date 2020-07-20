@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: technical-test2-deploy
+  namespace: technical-test2
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: technical-test2
+        env: prod
+    spec:
+      containers:
+        - name: npm
+          image: <container path>
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3300
