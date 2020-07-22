@@ -1,88 +1,71 @@
 steps:
-  - label: ":sonarcodecheck: sonar code check"
+  - label: "sonarqube code check"
     command:
-      - sonar.sh .
+      - sonar.sh
     agents:
-        builder: <builder agent npm with sonar>
-    env:
-      ECR: <path to artifactory>
-      BN: technical-test2$BUILDKITE_BUILD_NUMBER
-
-  - label: ":npmtest: npm test"
+        queue: $BUILDKITE_AGENT_META_DATA_QUEUE
+  
+  - wait      
+  - label: "npm unit test"
     command:
+      - cd app
+      - npm install
       - npm test
     agents:
-        builder: <builder agent npm>
-    env:
-      ECR: <path to artifactory>
-      BN: technical-test2$BUILDKITE_BUILD_NUMBER
+        queue: $BUILDKITE_AGENT_META_DATA_QUEUE
 
-  - label: ":npm build: npm build"
+  - label: "npm functional tests"
     command:
+      - cd app
+      - npm install
+      - npm test
+    agents:
+        queue: $BUILDKITE_AGENT_META_DATA_QUEUE
+
+  - wait
+  - label: "npm build"
+    command:
+      - cd app
+      - npm install
       - npm build
-      - . /buildkite-secrets/aws.anz
-      - docker build -t \$ECR:\$BN -f Dockerfile . --build-arg sha="$(git rev-parse --short HEAD)" --build-arg  version=$BUILDKITE_APP_VERSION
-      - $(aws ecr get-login --no-include-email)
-      - docker tag \$ECR:\$BN \$ECR:latest
-      - docker push \$ECR:\$BN
+    agents:
+        queue: $BUILDKITE_AGENT_META_DATA_QUEUE      
+
+  - wait      
+  - label: "create artifact"
+    command:
+      - echo $BUILDKITE_BUILD_NUMBER
+      - docker build -t \$ECR:\$BUILDKITE_BUILD_NUMBER -f Dockerfile . --build-arg sha="$(git rev-parse --short HEAD)" --build-arg  version=\$BUILDKITE_BUILD_NUMBER
+      - $(aws ecr get-login --no-include-email --region us-east-2)
+      - docker tag \$ECR:\$BUILDKITE_BUILD_NUMBER \$ECR:latest
+      - docker push \$ECR:\$BUILDKITE_BUILD_NUMBER
       - docker push \$ECR:latest
     agents:
-        builder: <builder agent npm>
+        queue: $BUILDKITE_AGENT_META_DATA_QUEUE
     env:
-      ECR: <path to artifactory>
-      BN: technical-test2$BUILDKITE_BUILD_NUMBER
+      ECR: 378736163542.dkr.ecr.us-east-2.amazonaws.com/technical-test2
 
+  - wait
   - label: deploy build dev
     command:
-      - . /buildkite-secrets/aws.anz
       - .buildkite/k8s.sh
     agents:
-      builder: <builer agent with npm>
+      queue: $BUILDKITE_AGENT_META_DATA_QUEUE
     env:
-      ECR: <ECR image path>:$BN
-      CLUSTER_NAME: <cluster name>
-      BN: bn$BUILDKITE_BUILD_NUMBER
-      K8S_DEPLOY: technical-test2-deploy
-      K8S_NAMESPACE: technical-test2
+      CLUSTER_NAME: technical-test2
+      ECR: 378736163542.dkr.ecr.us-east-2.amazonaws.com/technical-test2
       ENV: dev
 
-  - label: functional tests
-    command:
-      - . /buildkite-secrets/aws.anz
-      - .buildkite/functional_tests.sh
-    agents:
-      builder: <builer agent with npm>
-    env:
-      ECR: <ECR image path>:$BN
-      CLUSTER_NAME: <cluster name>
-      BN: bn$BUILDKITE_BUILD_NUMBER
-      K8S_DEPLOY: technical-test2-deploy
-      K8S_NAMESPACE: technical-test2
+  - block: ":shipit: Release"
+    branches: "*"
 
-  - label: integration tests
+  - wait
+  - label: Release to prod
     command:
-      - . /buildkite-secrets/aws.anz
-      - .buildkite/integration_tests.sh
-    agents:
-      builder: <builer agent with npm>
-    env:
-      ECR: <ECR image path>:$BN
-      CLUSTER_NAME: <cluster name>
-      BN: bn$BUILDKITE_BUILD_NUMBER
-      K8S_DEPLOY: technical-test2-deploy
-      K8S_NAMESPACE: technical-test2
-
-  -wait
-  - label: deploy build prod
-    command:
-      - . /buildkite-secrets/aws_prod.anz
       - .buildkite/k8s.sh
     agents:
-      builder: <builer agent with npm>
+      queue: $BUILDKITE_AGENT_META_DATA_QUEUE
     env:
-      ECR: <ECR image path>:$BN
-      CLUSTER_NAME: <cluster name>
-      BN: bn$BUILDKITE_BUILD_NUMBER
-      K8S_DEPLOY: technical-test2-deploy
-      K8S_NAMESPACE: technical-test2
+      CLUSTER_NAME: technical-test2
+      ECR: 378736163542.dkr.ecr.us-east-2.amazonaws.com/technical-test2
       ENV: prod

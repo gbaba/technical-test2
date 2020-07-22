@@ -1,13 +1,13 @@
 #!/bin/bash
-set -e
-. /buildkite-secrets/aws.anz
 
-aws eks update-kubeconfig --name $CLUSTER_NAME
+set -eo pipefail
+
+aws eks --region us-east-2 update-kubeconfig --name $CLUSTER_NAME
 
 pushd .k8s
 kubectl apply -f ns.yaml
-sed "s/<container image>/$ECR:$BN/g" $ENV/deployment.yaml
+sed -i "s/appversion/$BUILDKITE_BUILD_NUMBER/g" $ENV/my-app.yaml
 
 for schema in service deployment; do
-  kubectl apply -f ${schema}.yaml
+  kubectl apply -f $ENV/${schema}.yaml
 done

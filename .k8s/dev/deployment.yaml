@@ -1,19 +1,23 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: technical-test2-deploy
+  name: technical-test2-deployment
   namespace: technical-test2
+  labels:
+    app: technical-test2-app
+    env: dev
 spec:
-  replicas: 2
+  replicas: 3
+  selector:
+    matchLabels:
+      app: technical-test2-app
   template:
     metadata:
       labels:
-        app: technical-test2
-        env: dev
+        app: technical-test2-app
     spec:
       containers:
-        - name: npm
-          image: <container path>
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 3300
+      - name: npm
+        image: 378736163542.dkr.ecr.us-east-2.amazonaws.com/technical-test2:appversion
+        ports:
+        - containerPort: 3300
