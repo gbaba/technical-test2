@@ -13,4 +13,9 @@ for schema in service deployment; do
 done
 
 echo $ENV endpoint, please use the below script to validate
-echo curl -silent $(kubectl get service -n technical-test2 -o jsonpath='{.items[1].status.loadBalancer.ingress[0].hostname}'):80/version
+if [ $ENV = dev ]
+then
+    echo curl -silent $(kubectl get service technical-test2-service-devlopment -n technical-test2 -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'):80/version
+else
+    echo curl -silent $(kubectl get service technical-test2-service-prod -n technical-test2 -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'):80/version
+fi
