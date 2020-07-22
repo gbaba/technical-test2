@@ -11,3 +11,6 @@ sed -i "s/appversion/$BUILDKITE_BUILD_NUMBER/g" $ENV/deployment.yaml
 for schema in service deployment; do
   kubectl apply -f $ENV/${schema}.yaml
 done
+
+echo $ENV endpoint, please use the below script to validate
+echo curl -silent $(kubectl get service -n technical-test2 -o jsonpath='{.items[1].status.loadBalancer.ingress[0].hostname}'):80/version
